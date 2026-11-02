@@ -49,6 +49,8 @@ st.markdown("""
     .stApp label, .stApp label p, [data-testid="stWidgetLabel"], [data-testid="stWidgetLabel"] p { color: #cbd5e1 !important; }
     [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p, .stCaption, .stCaption p { color: #94a3b8 !important; }
     .stApp input::placeholder { color: #64748b !important; opacity: 1; }
+    /* Hide Streamlit's "Running..." indicator in the top corner */
+    [data-testid="stStatusWidget"] { visibility: hidden; }
     [data-testid="stCaptionContainer"] *, .stCaption * { color: #94a3b8 !important; }
 
     /* Buttons (swimmer picker, Swim England link): always dark with light text.
@@ -96,7 +98,7 @@ def seconds_to_time(sec):
     return "N/A" if sec is None or sec < 0 else (f"{int(sec // 60)}:{sec % 60:05.2f}" if sec >= 60 else f"{sec % 60:05.2f}")
 
 # --- WEB SCRAPER ---
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def scrape_swim_england_pbs(tiref):
     # Swim England biog page: personal details (name, year of birth, female/male, club)
     # and one table with "Short Course PB" / "Long Course PB" columns.
@@ -150,7 +152,7 @@ def scrape_swim_england_pbs(tiref):
 # Table: swimmer_directory (membership_no PK, name, known_as, club, updated_at), RLS on.
 # Needs SUPABASE_URL and SUPABASE_KEY (service_role) in Streamlit secrets; without them
 # the app still works, just without name search.
-@st.cache_resource
+@st.cache_resource(show_spinner=False)
 def get_db():
     try:
         from supabase import create_client
@@ -168,7 +170,7 @@ def remember_swimmer(tiref, info):
     except Exception:
         pass  # never let the directory get in the way of showing PBs
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=60, show_spinner=False)
 def find_swimmers(query):
     db = get_db()
     if not db: return None
